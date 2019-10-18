@@ -5,8 +5,9 @@ namespace IMAG\LdapBundle\Factory;
 use Symfony\Bundle\SecurityBundle\DependencyInjection\Security\Factory\AbstractFactory,
     Symfony\Component\DependencyInjection\ContainerBuilder,
     Symfony\Component\Config\Definition\Builder\NodeDefinition,
-    Symfony\Component\DependencyInjection\DefinitionDecorator,
     Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\DependencyInjection\ChildDefinition;
+use Symfony\Component\Security\Core\User\UserChecker;
 
 class LdapFactory extends AbstractFactory
 {
@@ -49,14 +50,15 @@ class LdapFactory extends AbstractFactory
     {
         $dao = 'security.authentication.provider.dao.'.$id;
         $container
-            ->setDefinition($dao, new DefinitionDecorator('security.authentication.provider.dao'))
+            ->setDefinition($dao, new ChildDefinition('security.authentication.provider.dao'))
             ->replaceArgument(0, new Reference($userProviderId))
+            ->replaceArgument(1, new Reference('security.user_checker'))
             ->replaceArgument(2, $id)
         ;
 
         $provider = 'imag_ldap.security.authentication.provider.'.$id;
         $container
-            ->setDefinition($provider, new DefinitionDecorator('imag_ldap.security.authentication.provider'))
+            ->setDefinition($provider, new ChildDefinition('imag_ldap.security.authentication.provider'))
             ->replaceArgument(0, new Reference($userProviderId))
             ->replaceArgument(1, new Reference($dao))
             ->replaceArgument(4, $id)
@@ -83,7 +85,7 @@ class LdapFactory extends AbstractFactory
     {
         $entryPointId = 'imag_ldap.security.authentication.form_entry_point.'.$id;
         $container
-            ->setDefinition($entryPointId, new DefinitionDecorator('imag_ldap.security.authentication.form_entry_point'))
+            ->setDefinition($entryPointId, new ChildDefinition('imag_ldap.security.authentication.form_entry_point'))
             ->addArgument(new Reference('security.http_utils'))
             ->addArgument($config['login_path'])
             ->addArgument($config['use_forward'])
